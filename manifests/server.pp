@@ -573,13 +573,27 @@ define openvpn::server(
     }
   }
 
+
   if $::openvpn::params::systemd {
     if $::openvpn::manage_service {
-      service { "openvpn@${name}":
-        ensure   => running,
-        enable   => true,
-        provider => 'systemd',
-        require  => $systemd_service_require,
+      if $autostart {
+        service { "openvpn@${name}":
+          ensure   => running,
+          enable   => true,
+          provider => 'systemd',
+          require  => $systemd_service_require,
+        }
+      }
+      else {
+        service { "openvpn@${name}":
+          enable   => false,
+          status   => '/bin/true',
+          stop     => '/bin/true',
+          start    => '/bin/true',
+          restart  => '/bin/true',
+          provider => 'systemd',
+          require  => $systemd_service_require,
+        }
       }
     }
   }

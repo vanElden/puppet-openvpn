@@ -517,6 +517,10 @@ define openvpn::server(
         key_ou       => $key_ou,
         tls_auth     => $tls_auth,
       }
+      $systemd_service_require = [
+        File["/etc/openvpn/${name}.conf"],
+        Openvpn::Ca[$ca_name]
+      ]
     } else {
       if !defined(Openvpn::Ca[$shared_ca]) {
         fail("Openvpn::ca[${name}] is not defined for shared_ca")
@@ -541,6 +545,7 @@ define openvpn::server(
       mode    => '0750',
       recurse => true,
     }
+    $systemd_service_require = File["/etc/openvpn/${name}.conf"]
   }
 
   if $::osfamily == 'Debian' and !$::openvpn::autostart_all and $autostart {
@@ -574,7 +579,7 @@ define openvpn::server(
         ensure   => running,
         enable   => true,
         provider => 'systemd',
-        require  => [ File["/etc/openvpn/${name}.conf"], Openvpn::Ca[$ca_name] ]
+        require  => $systemd_service_require,
       }
     }
   }

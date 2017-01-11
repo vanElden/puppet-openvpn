@@ -1,7 +1,4 @@
 client
-ca keys/<%= @name %>/ca.crt
-cert keys/<%= @name %>/<%= @name %>.crt
-key keys/<%= @name %>/<%= @name %>.key
 dev <%= @dev %>
 proto <%= @proto %>
 remote <%= @remote_host %> <%= @port %>
@@ -21,6 +18,9 @@ persist-tun
 <% end -%>
 <% if @cipher -%>
 cipher <%= @cipher %>
+<% end -%>
+<% if @auth -%>
+auth <%= @auth %>
 <% end -%>
 <% if @tls_cipher -%>
 tls-cipher <%= @tls_cipher %>
@@ -54,12 +54,6 @@ up "<%= @up %>"
 <% end -%>
 <% if @down != '' -%>
 down "<%= @down %>"
-<% end -%>
-<% if @tls_auth -%>
-
-# tls authentification
-tls-client
-tls-auth keys/<%= @name %>/ta.key 1
 <% end -%>
 <% if @x509_name -%>
 

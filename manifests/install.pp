@@ -39,7 +39,7 @@ class openvpn::install inherits ::openvpn::params {
   }
 
   file {
-    [ '/etc/openvpn', '/etc/openvpn/keys', '/var/log/openvpn', ]:
+    [ '/etc/openvpn', '/var/log/openvpn', ]:
       ensure  => directory,
       require => Package['openvpn'];
   }

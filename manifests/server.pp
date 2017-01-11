@@ -322,6 +322,10 @@
 #   Boolean. Whether or not to bind to a specific port number.
 #   Default: false
 #
+# [*auth*]
+#   String. Authentication hash algorithm used.
+#   Default: sha1
+#
 # [*custom_options*]
 #   Hash of additional options that you want to append to the configuration file.
 #
@@ -436,6 +440,7 @@ define openvpn::server(
   $autostart                 = undef,
   $ns_cert_type              = true,
   $nobind                    = false,
+  $auth                      = 'SHA1',
   $custom_options            = {},
 ) {
 

@@ -326,6 +326,10 @@
 #   String. Authentication hash algorithm used.
 #   Default: sha1
 #
+# [*download_group*]
+#   String. Group that may read download configurations.
+#   Default: undef
+#
 # [*custom_options*]
 #   Hash of additional options that you want to append to the configuration file.
 #
@@ -441,6 +445,7 @@ define openvpn::server(
   $ns_cert_type              = true,
   $nobind                    = false,
   $auth                      = 'SHA1',
+  $download_group            = undef,
   $custom_options            = {},
 ) {
 
@@ -492,7 +497,8 @@ define openvpn::server(
 
   file { "/etc/openvpn/${name}":
     ensure => directory,
-    mode   => '0750',
+    mode   => '0755',
+    owner  => 'root',
     notify => $lnotify,
   }
 
@@ -533,14 +539,27 @@ define openvpn::server(
       $ca_common_name = getparam(Openvpn::Ca[$shared_ca], 'common_name')
     }
 
-    file {
-      [ "/etc/openvpn/${name}/auth",
-      "/etc/openvpn/${name}/client-configs",
-      "/etc/openvpn/${name}/download-configs" ]:
+    file {["/etc/openvpn/${name}/auth",
+           "/etc/openvpn/${name}/client-configs"]:
         ensure  => directory,
+        owner   => 'root',
         mode    => '0750',
         recurse => true,
     }
+
+    unless empty($download_group) {
+      $_download_group = $download_group
+    }
+    else {
+      $_download_group = $group_to_set
+    }
+    file {"/etc/openvpn/${name}/download-configs":
+      ensure  => directory,
+      owner   => 'root',
+      group   => $_download_group,
+      mode    => '0750',
+    }
+
   } else {
     # VPN Client Mode
     $ca_common_name = $name

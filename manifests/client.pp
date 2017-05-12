@@ -145,6 +145,10 @@
 #   archive.
 #   Default: undef
 #
+# [*download_group*]
+#   String. Group that may download a configuration.
+#   Default: root
+#
 # === Examples
 #
 #   openvpn::client {
@@ -211,6 +215,7 @@ define openvpn::client(
   $custom_options       = {},
   $expire               = undef,
   $readme               = undef,
+  $download_group       = 'root',
 ) {
 
   if $pam {
@@ -245,30 +250,45 @@ define openvpn::client(
           "/etc/openvpn/${server}/download-configs/${name}/keys",
           "/etc/openvpn/${server}/download-configs/${name}/keys/${name}" ]:
     ensure  => directory,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0500',
   }
 
   file { "/etc/openvpn/${server}/download-configs/${name}/keys/${name}/${name}.crt":
-    ensure  => link,
-    target  => "/etc/openvpn/${ca_name}/easy-rsa/keys/${name}.crt",
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0400',
+    source  => "/etc/openvpn/${ca_name}/easy-rsa/keys/${name}.crt",
     require => Exec["generate certificate for ${name} in context of ${ca_name}"],
   }
 
   file { "/etc/openvpn/${server}/download-configs/${name}/keys/${name}/${name}.key":
-    ensure  => link,
-    target  => "/etc/openvpn/${ca_name}/easy-rsa/keys/${name}.key",
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0400',
+    source  => "/etc/openvpn/${ca_name}/easy-rsa/keys/${name}.key",
     require => Exec["generate certificate for ${name} in context of ${ca_name}"],
   }
 
   file { "/etc/openvpn/${server}/download-configs/${name}/keys/${name}/ca.crt":
-    ensure  => link,
-    target  => "/etc/openvpn/${ca_name}/easy-rsa/keys/ca.crt",
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0400',
+    source  => "/etc/openvpn/${ca_name}/easy-rsa/keys/ca.crt",
     require => Exec["generate certificate for ${name} in context of ${ca_name}"],
   }
 
   if $tls_auth {
     file { "/etc/openvpn/${server}/download-configs/${name}/keys/${name}/ta.key":
-      ensure  => link,
-      target  => "/etc/openvpn/${server}/easy-rsa/keys/ta.key",
+      ensure  => file,
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0400',
+      source  => "/etc/openvpn/${server}/easy-rsa/keys/ta.key",
       require => Exec["generate certificate for ${name} in context of ${server}"],
       before  => Concat["/etc/openvpn/${server}/download-configs/${name}.ovpn"],
     }
@@ -285,7 +305,9 @@ define openvpn::client(
   }
 
   concat { "/etc/openvpn/${server}/download-configs/${name}.ovpn":
-    mode    => '0400',
+    owner   => root,
+    group   => $download_group,
+    mode    => '0440',
     require => [
       File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}/ca.crt"],
       File["/etc/openvpn/${server}/download-configs/${name}/keys/${name}/${name}.key"],

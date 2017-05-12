@@ -547,11 +547,11 @@ define openvpn::server(
         recurse => true,
     }
 
-    unless empty($download_group) {
-      $_download_group = $download_group
+    if empty($download_group) {
+      $_download_group = $group_to_set
     }
     else {
-      $_download_group = $group_to_set
+      $_download_group = $download_group
     }
     file {"/etc/openvpn/${name}/download-configs":
       ensure  => directory,

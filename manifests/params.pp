@@ -21,7 +21,7 @@ class openvpn::params {
       $link_openssl_cnf = true
       $pam_module_path  = '/usr/lib64/openvpn/plugin/lib/openvpn-auth-pam.so'
       $additional_packages = ['easy-rsa']
-      $easyrsa_source      = '/usr/share/easy-rsa/2.0'
+      $easyrsa_source      = '/usr/share/easy-rsa/3.0'
 
       # Redhat/Centos >= 7.0
       if(versioncmp($::operatingsystemrelease, '7.0') >= 0) {

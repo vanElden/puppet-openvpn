@@ -66,8 +66,9 @@ define openvpn::ca (
     ensure             => directory,
     recurse            => true,
     links              => 'follow',
-    source_permissions => 'use',
+    owner              => 0,
     group              => 0,
+    mode               => '0644',
     source             => "file:${openvpn::easyrsa_source}",
     require            => File["${etc_directory}/openvpn/${name}"],
   }

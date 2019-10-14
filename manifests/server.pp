@@ -272,7 +272,7 @@ define openvpn::server (
       $_real_tls_server = false
     }
   }
-  if defined($override_tls_server) {
+  if $override_tls_server !~ Undef {
     $real_tls_server = $override_tls_server
   } else {
     $real_tls_server = $_real_tls_server

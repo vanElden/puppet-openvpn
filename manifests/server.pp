@@ -73,6 +73,7 @@
 # @param tls_auth  Activates tls-auth to Add an additional layer of HMAC authentication on top of the TLS control channel to protect against DoS attacks.
 # @param tls_crypt Encrypt and authenticate all control channel packets with the key from keyfile. (See --tls-auth for more background.)
 # @param tls_server If proto not tcp it lets you choose if the parameter tls-server is set or not.
+# @param override_tls_server Override the default tls_server behaviour. If set to false, tls_server will not be set. If set to true, it will be set explicitely
 # @param tls_client Allows you to set this server up as a tls-client connection.
 # @param server_poll_timeout Value for timeout before trying the next server.
 # @param ping_timer_rem Do not start clocking timeouts until a remote peer connects.
@@ -197,6 +198,7 @@ define openvpn::server (
   Boolean $tls_crypt                                                = false,
   Boolean $tls_server                                               = false,
   Boolean $tls_client                                               = false,
+  Optional[Boolean] $override_tls_server                            = undef,
   Optional[Integer] $server_poll_timeout                            = undef,
   Boolean $ping_timer_rem                                           = false,
   Optional[Integer] $sndbuf                                         = undef,
@@ -260,15 +262,20 @@ define openvpn::server (
   # Check if we want to run as a client or not
   if !$tls_client {
     if $tls_server and !$extca_enabled {
-      $real_tls_server = $tls_server
+      $_real_tls_server = $tls_server
     } elsif ($extca_enabled and $extca_dh_file) or (!$extca_enabled) {
-      $real_tls_server = $proto ? {
+      $_real_tls_server = $proto ? {
         /tcp/   => true,
         default => false
       }
     } else {
-      $real_tls_server = false
+      $_real_tls_server = false
     }
+  }
+  if defined($override_tls_server) {
+    $real_tls_server = $override_tls_server
+  } else {
+    $real_tls_server = $_real_tls_server
   }
 
   $pam_module_path = $openvpn::pam_module_path

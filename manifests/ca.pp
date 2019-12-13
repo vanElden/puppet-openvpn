@@ -61,21 +61,17 @@ define openvpn::ca (
       mode   => '0750'
   })
 
-  file { "${server_directory}/${name}/easy-rsa" :
-    ensure             => directory,
-    recurse            => true,
-    links              => 'follow',
-    source_permissions => 'use',
-    group              => 0,
-    source             => "file:${openvpn::easyrsa_source}",
-    require            => File["${server_directory}/${name}"],
+  exec { "init easy-rsa ${name}":
+    command  => "rsync -a --exclude vars ${openvpn::easyrsa_source} ${server_directory}/${name}/easy-rsa",
+    provider => "shell",
+    require  => File["${server_directory}/${name}"],
   }
 
   file { "${server_directory}/${name}/easy-rsa/revoked":
     ensure  => directory,
     mode    => '0750',
     recurse => true,
-    require => File["${server_directory}/${name}/easy-rsa"],
+    require => Exec["init easy-rsa ${name}"],
   }
 
   case $openvpn::easyrsa_version {
@@ -84,7 +80,7 @@ define openvpn::ca (
         ensure  => file,
         mode    => '0550',
         content => template('openvpn/vars.erb'),
-        require => File["${server_directory}/${name}/easy-rsa"],
+        require => Exec["init easy-rsa ${name}"],
       }
 
       if $openvpn::link_openssl_cnf {
@@ -149,7 +145,7 @@ define openvpn::ca (
             'key_ou'           => $key_ou,
           }
         ),
-        require => File["${server_directory}/${name}/easy-rsa"],
+        require => Exec["init easy-rsa ${name}"],
       }
 
       if $openvpn::link_openssl_cnf {
@@ -205,14 +201,14 @@ define openvpn::ca (
   }
 
   file { "${server_directory}/${name}/easy-rsa/openssl.cnf":
-    require => File["${server_directory}/${name}/easy-rsa"],
+    require => Exec["init easy-rsa ${name}"],
   }
 
   file { "${server_directory}/${name}/keys":
     ensure  => link,
     target  => "${server_directory}/${name}/easy-rsa/keys",
     mode    => '0640',
-    require => File["${server_directory}/${name}/easy-rsa"],
+    require => Exec["init easy-rsa ${name}"],
   }
 
   file { "${server_directory}/${name}/crl.pem":

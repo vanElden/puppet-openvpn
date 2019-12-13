@@ -62,21 +62,17 @@ define openvpn::ca (
     mode   => '0750'
   })
 
-  file { "${etc_directory}/openvpn/${name}/easy-rsa" :
-    ensure             => directory,
-    recurse            => true,
-    links              => 'follow',
-    source_permissions => 'use',
-    group              => 0,
-    source             => "file:${openvpn::easyrsa_source}",
-    require            => File["${etc_directory}/openvpn/${name}"],
+  exec { "init easy-rsa ${name}":
+    command  => "rsync -a --exclude vars ${openvpn::easyrsa_source} ${etc_directory}/openvpn/${name}/easy-rsa",
+    provider => "shell",
+    require  => File["${etc_directory}/openvpn/${name}"],
   }
 
   file { "${etc_directory}/openvpn/${name}/easy-rsa/revoked":
     ensure  => directory,
     mode    => '0750',
     recurse => true,
-    require => File["${etc_directory}/openvpn/${name}/easy-rsa"],
+    require => Exec["init easy-rsa ${name}"],
   }
 
   case $openvpn::easyrsa_version {
@@ -85,7 +81,7 @@ define openvpn::ca (
         ensure  => file,
         mode    => '0550',
         content => template('openvpn/vars.erb'),
-        require => File["${etc_directory}/openvpn/${name}/easy-rsa"],
+        require => Exec["init easy-rsa ${name}"],
       }
 
       if $openvpn::link_openssl_cnf {
@@ -151,7 +147,7 @@ define openvpn::ca (
             'key_ou'         => $key_ou,
           }
         ),
-        require => File["${etc_directory}/openvpn/${name}/easy-rsa"],
+        require => Exec["init easy-rsa ${name}"],
       }
 
       if $openvpn::link_openssl_cnf {
@@ -208,14 +204,14 @@ define openvpn::ca (
   }
 
   file { "${etc_directory}/openvpn/${name}/easy-rsa/openssl.cnf":
-    require => File["${etc_directory}/openvpn/${name}/easy-rsa"],
+    require => Exec["init easy-rsa ${name}"],
   }
 
   file { "${etc_directory}/openvpn/${name}/keys":
     ensure  => link,
     target  => "${etc_directory}/openvpn/${name}/easy-rsa/keys",
     mode    => '0640',
-    require => File["${etc_directory}/openvpn/${name}/easy-rsa"],
+    require => Exec["init easy-rsa ${name}"],
   }
 
   file { "${etc_directory}/openvpn/${name}/crl.pem":

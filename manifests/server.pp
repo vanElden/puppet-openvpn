@@ -242,7 +242,6 @@ define openvpn::server (
   Hash[String, Hash] $scripts                                       = {},
   Hash $custom_options                                              = {},
 ) {
-
   include openvpn
   Class['openvpn::install']
   -> Openvpn::Server[$name]
@@ -323,15 +322,15 @@ define openvpn::server (
     notify => $lnotify,
   }
   file {
-    [ "${server_directory}/${name}/scripts", ]:
+    ["${server_directory}/${name}/scripts",]:
       ensure  => directory,
       mode    => '0750',
       recurse => true,
   }
   if $shared_ca {
     ensure_resource(file, "${server_directory}/${ca_name}", {
-      ensure => directory,
-      mode   => '0750',
+        ensure => directory,
+        mode   => '0750',
     })
   }
 
@@ -417,9 +416,11 @@ define openvpn::server (
     }
 
     file {
-      [ "${server_directory}/${name}/auth",
+      [
+        "${server_directory}/${name}/auth",
         "${server_directory}/${name}/client-configs",
-        "${server_directory}/${name}/download-configs" ]:
+        "${server_directory}/${name}/download-configs",
+      ]:
         ensure  => directory,
         mode    => '0750',
         recurse => true,
@@ -479,7 +480,7 @@ define openvpn::server (
   if $ldap_enabled == true {
     file {
       "${server_directory}/${name}/auth/ldap.conf":
-        ensure  => present,
+        ensure  => file,
         owner   => root,
         mode    => '0400',
         content => template('openvpn/ldap.erb'),
